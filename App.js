@@ -1,59 +1,79 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, View, ScrollView, FlatList } from "react-native";
-import { NavBar } from "./src/Components/NavBar/NavBar";
-import { AddTodo } from "./src/Components/AddTodo/AddTodo";
-import { Todo } from "./src/Components/Todo/Todo";
+import {
+  StyleSheet,
+  Text,
+  View,
+  FlatList,
+  Alert,
+  TouchableWithoutFeedback,
+  Keyboard
+} from "react-native";
+import Header from "./Components/header";
+import TodoItem from "./Components/todoItem";
+import AddTodo from "./Components/addTodo";
 
 export default function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState([
+    { text: "buy coffee", key: "1" },
+    { text: "create an app", key: "2" },
+    { text: "play on the switch", key: "3" }
+  ]);
 
-  const addTodo = title => {
-    // const newTodo = {
-    //   id: Date.now().toString(),
-    //   title: title
-    // };
-    // setTodos(prevTodos => {
-    //   return [...prevTodos, newTodo];
-    // });
-
-    setTodos(prev => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        title: title
-      }
-    ]);
+  const pressHandler = key => {
+    setTodos(prevTodos => {
+      return prevTodos.filter(todo => todo.key !== key);
+    });
   };
 
-  const removeTodo = id => {
-    setTodos(prev => prev.filter(todo => todo.id !== id));
+  const submitHandler = text => {
+    if (text.length > 3) {
+      setTodos(prevTodos => {
+        return [{ text: text, key: Math.random().toString() }, ...prevTodos];
+      });
+    } else {
+      Alert.alert("OOPS", "Todos must be over 3 chars long", [
+        {
+          text: "Understood",
+          onPress: () => console.log("alert closed")
+        }
+      ]);
+    }
   };
 
   return (
-    <View>
-      <NavBar title={"Todo App"} />
+    <TouchableWithoutFeedback
+      onPress={() => {
+        Keyboard.dismiss();
+        console.log("dismissed keyboard");
+      }}
+    >
       <View style={styles.container}>
-        <AddTodo onSubmit={addTodo} />
-
-        <FlatList
-          keyExtractor={item => item.id.toString()}
-          data={todos}
-          renderItem={({ item }) => <Todo todo={item} onRemove={removeTodo} />}
-        />
-
-        {/* <ScrollView>
-          {todos.map(todo => (
-            <Todo todo={todo} key={todo.id} />
-          ))}
-        </ScrollView> */}
+        <Header />
+        <View style={styles.content}>
+          <AddTodo submitHandler={submitHandler} />
+          <View style={styles.list}>
+            <FlatList
+              data={todos}
+              renderItem={({ item }) => (
+                <TodoItem item={item} pressHandler={pressHandler} />
+              )}
+            />
+          </View>
+        </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 30,
-    paddingVertical: 20
+    flex: 1,
+    backgroundColor: "#fff"
+  },
+  content: {
+    padding: 40
+  },
+  list: {
+    marginTop: 20
   }
 });
